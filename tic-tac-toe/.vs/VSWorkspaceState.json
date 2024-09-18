@@ -1,6 +1,8 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\tic-tac-toe"
   ],
+  "SelectedNode": "\\tic-tac-toe\\tic-tac-toe.cpp",
   "PreviewInSolutionExplorer": false
 }
