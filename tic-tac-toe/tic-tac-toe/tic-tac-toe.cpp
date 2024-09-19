@@ -4,10 +4,12 @@
 #include <iostream>
 #include <cassert>
 #include <string>
+#include <sstream>
 
 using namespace std;
 
 #pragma region Rules Class
+
 class Rules
 {
 public:
@@ -17,6 +19,7 @@ public:
 private:
     bool checkCorrectCharacter(string);
     bool isInRange(int);
+    bool isInteger(const string&);
 };
 
 Rules::Rules()
@@ -25,9 +28,10 @@ Rules::Rules()
 bool Rules::verifyInput(string space, string token) {
     bool correctToken = true;
     int mark;
-    
+
     correctToken = checkCorrectCharacter(token);
-    if (isdigit(stoi(space))) {
+
+    if (isInteger(space)) {
         mark = stoi(space);
         correctToken = isInRange(mark);
     } else {
@@ -44,11 +48,22 @@ bool Rules::checkCorrectCharacter(string token) {
     }
 }
 bool Rules::isInRange(int space) {
-    if (space < 0 && space < 10) {
+    if (space > 0 && space < 10) {
         return true;
     } else {
         return false;
     }
+}
+bool Rules::isInteger(const string& str) {
+    istringstream iss(str);
+    int num;
+    char extra;
+
+    if (!(iss >> num) || (iss >> extra)) {
+        return false;
+    }
+
+    return true;
 }
 
 #pragma endregion
@@ -109,7 +124,7 @@ public:
     Game();
     void start();
 private:
-
+    int playerPlay(Rules *);
 };
 
 Game::Game()
@@ -120,34 +135,48 @@ void Game::start() {
     Rules* rules = new Rules();
     string input = "";
     int mark;
+    bool gameInPlay = true;
+
+    while (gameInPlay) {
+        board->printBoard();
+
+        cout << "let's do this thing!\n";
+        mark = playerPlay(rules);
+    
+        board->markBoard(mark, "X");
+        board->printBoard();
+
+        cout << "now it's player two\n";
+        mark = playerPlay(rules);
+    
+        board->markBoard(mark, "O");
+        board->printBoard();
+
+
+    }
+    
+    
+}
+int Game::playerPlay(Rules *rules) {
+    string input = "";
+    int mark = 0;
     bool canContinue = false;
 
-    board->printBoard();
-
-    cout << "let's do this thing!\n";
     while (!canContinue) {
         cout << "make your move\n";
         getline(cin, input);
-    
+
         if (rules->verifyInput(input, "X")) {
             mark = stoi(input);
             cout << "\n";
             canContinue = true;
         }
+        else {
+            cout << "\nnot quite try again\n";
+        }
     }
     
-
-    board->markBoard(mark, "X");
-    board->printBoard();
-
-    cout << "now it's player two\n";
-    getline(cin, input);
-    mark = stoi(input);
-    cout << "\n";
-    
-    board->markBoard(mark, "O");
-    board->printBoard();
-    
+    return mark;
 
 }
 
