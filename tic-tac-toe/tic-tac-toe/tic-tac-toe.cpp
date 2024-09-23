@@ -20,6 +20,8 @@ private:
     bool checkCorrectCharacter(string);
     bool isInRange(int);
     bool isInteger(const string&);
+    bool isAvailble(int);
+    string mockBoard[9] = {"1","2","3","4","5","6","7","8","9"};
 };
 
 Rules::Rules()
@@ -27,18 +29,20 @@ Rules::Rules()
 }
 bool Rules::verifyInput(string space, string token) {
     bool correctToken = true;
+    bool correctSpace = true;
     int mark;
 
     correctToken = checkCorrectCharacter(token);
 
     if (isInteger(space)) {
         mark = stoi(space);
-        correctToken = isInRange(mark);
+        correctSpace = isInRange(mark);
+        correctSpace = isAvailble(mark);
     } else {
-        correctToken = false;
+        correctSpace = false;
     }
 
-    return correctToken;
+    return correctToken && correctSpace;
 }
 bool Rules::checkCorrectCharacter(string token) {
     if (token == "X" || token == "O") {
@@ -64,6 +68,14 @@ bool Rules::isInteger(const string& str) {
     }
 
     return true;
+}
+bool Rules::isAvailble(int space) {
+    if (mockBoard[space - 1] != "taken" && isInRange(space)) {
+        mockBoard[space - 1] = "taken";
+        return true;
+    } else {
+        return false;
+    }
 }
 
 #pragma endregion
