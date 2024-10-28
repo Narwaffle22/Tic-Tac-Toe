@@ -2,6 +2,7 @@
 #include <cassert>
 #include <string>
 #include <sstream>
+#include <windows.h>
 
 using namespace std;
 
@@ -190,6 +191,7 @@ class Game
 public:
     Game();
     void start();
+    void startBattle();
 private:
     int playerPlay(Rules*);
 };
@@ -227,8 +229,38 @@ void Game::start() {
             continue;
         }
     }
+}
+void Game::startBattle() {
+    Board* board = new Board();
+    Rules* rules = new Rules();
+    string input = "";
+    int mark;
+    bool gameInPlay = true;
 
+    while (gameInPlay) {
+        board->printBoard();
 
+        cout << "let's do this thing!\n";
+        mark = playerPlay(rules);
+
+        board->markBoard(mark, "X");
+        board->printBoard();
+        if (rules->isDone()) {
+            gameInPlay = false;
+            continue;
+        }
+
+        cout << "now it's player two\n";
+        mark = playerPlay(rules);
+
+        board->markBoard(mark, "O");
+        board->printBoard();
+
+        if (rules->isDone()) {
+            gameInPlay = false;
+            continue;
+        }
+    }
 }
 int Game::playerPlay(Rules* rules) {
     string input = "";
@@ -248,11 +280,8 @@ int Game::playerPlay(Rules* rules) {
             cout << "\nnot quite try again\n";
         }
     }
-
     return mark;
-
 }
-
 #pragma endregion
 
 #pragma region Menu Class
@@ -262,24 +291,26 @@ public:
     MainMenu();
     void startTheProgram();
 private:
-    string welcomeMessages[1] = { "welcome back to the menu" };
+    string welcomeMessages[3] = { "welcome back to the menu", "aaand we're back", "here we are again" };
+    int randWelcome;
     void playTicTacToe();
     void playBatTicTacToe();
     void compendium();
     void statsScreen();
+    void clearConsole();
+    void randWelcomer();
 };
 MainMenu::MainMenu() {
 }
 void MainMenu::startTheProgram() {
     int command;
-    int randWelcome = 0;
     bool inProgress = true;
 
     cout << "+--------------------------------------+" << "\n";
     cout << "+    Welcome to Battle Tic-Tac-Toe     +" << "\n";
     cout << "+--------------------------------------+" << "\n\n";
 
-    cout << "\n\n!Follow The Instructions to Navigate!\n" << endl;
+    cout << "Follow The Instructions to Navigate!\n" << endl;
 
     cout << "[1] Original Tic-Tac-Toe" << endl;
     cout << "[2] Battle Tic-Tac-Toe" << endl;
@@ -291,15 +322,17 @@ void MainMenu::startTheProgram() {
     cin >> command;
 
     while (inProgress) {
+        randWelcomer();
         switch (command) {
         case 0: {
             inProgress = false;
+            clearConsole();
             cout << "Hope you play again soon! see ya!";
             break;
         }
         case 1: {
             playTicTacToe();
-            cout << "\n\nWhat a nice bit of nostalgia, " << welcomeMessages[randWelcome] << "\n" << endl;
+            cout << "What a nice bit of nostalgia, " << welcomeMessages[randWelcome] << "\n" << endl;
 
             cout << "[1] Original Tic-Tac-Toe" << endl;
             cout << "[2] Battle Tic-Tac-Toe" << endl;
@@ -313,7 +346,7 @@ void MainMenu::startTheProgram() {
         }
         case 2: {
             playBatTicTacToe();
-            cout << "\n\nI hope that was fun, " << welcomeMessages[randWelcome] << "\n" << endl;
+            cout << "I hope that was fun, " << welcomeMessages[randWelcome] << "\n" << endl;
 
             cout << "[1] Original Tic-Tac-Toe" << endl;
             cout << "[2] Battle Tic-Tac-Toe" << endl;
@@ -327,7 +360,7 @@ void MainMenu::startTheProgram() {
         }
         case 3: {
             compendium();
-            cout << "\n\nHow very informative, " << welcomeMessages[randWelcome] << "\n" << endl;
+            cout << "How very informative, " << welcomeMessages[randWelcome] << "\n" << endl;
 
             cout << "[1] Original Tic-Tac-Toe" << endl;
             cout << "[2] Battle Tic-Tac-Toe" << endl;
@@ -341,7 +374,7 @@ void MainMenu::startTheProgram() {
         }
         case 4: {
             statsScreen();
-            cout << "\n\nNow those were some good stats, " << welcomeMessages[randWelcome] << "\n" << endl;
+            cout << "Now those were some good stats, " << welcomeMessages[randWelcome] << "\n" << endl;
 
             cout << "[1] Original Tic-Tac-Toe" << endl;
             cout << "[2] Battle Tic-Tac-Toe" << endl;
@@ -357,18 +390,37 @@ void MainMenu::startTheProgram() {
     }
 }
 void MainMenu::playTicTacToe() {
-
+    clearConsole();
+    cin.ignore();
+    Game* tictactoe = new Game();
+    tictactoe->start();
+    delete tictactoe;
+    clearConsole();
 }
 void MainMenu::playBatTicTacToe() {
-
+    clearConsole();
+    cin.ignore();
+    Game* batTicTacToe = new Game();
+    batTicTacToe->startBattle();
+    delete batTicTacToe;
+    clearConsole();
 }
 void MainMenu::compendium() {
     cout << "\n\n\nOh, I have so many ideas for this one, just you wait\n\n\n";
+    clearConsole();
 }
 void MainMenu::statsScreen() {
     cout << "\n\n\nOh, I have so many ideas for this one, just you wait\n\n\n";
+    clearConsole();
 }
-
+void MainMenu::clearConsole() {
+    system("cls");
+}
+void MainMenu::randWelcomer() {
+    int length = sizeof(welcomeMessages) / sizeof(welcomeMessages[0]);
+    srand(static_cast<unsigned int>(std::time(nullptr)));
+    randWelcome = rand() % length;
+}
 
 #pragma endregion
 // main 
