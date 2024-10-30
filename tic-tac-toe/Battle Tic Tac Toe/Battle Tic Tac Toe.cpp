@@ -63,7 +63,7 @@ bool Rules::verifyInput(string space, string token) {
     bool correctSpace = true;
     int mark;
 
-    correctToken = checkCorrectCharacter(token);
+    //correctToken = checkCorrectCharacter(token);
 
     if (isInteger(space)) {
         mark = stoi(space);
@@ -119,7 +119,7 @@ bool Rules::isAvailble(int space) {
 bool Rules::isDone() {
     for (int i = 0; i < 8; i++) {
         if (this->threeInARow(winningCombos[i][0], winningCombos[i][1], winningCombos[i][2])) {
-            cout << "Game is over, " << XorO << " wins\n";
+            cout << "Game is over, " << XorO << " wins\nPress [Enter] to continue";
             return true;
         }
     }
@@ -129,7 +129,7 @@ bool Rules::isDone() {
             return false;
     }
 
-    cout << "Game is over, it's a tie, womp womp\n";
+    cout << "Game is over, it's a tie, womp womp\nPress [Enter] to continue";
     return true;
 }
 bool Rules::threeInARow(int indexOne, int indexTwo, int indexThree) {
@@ -193,7 +193,7 @@ public:
     void start();
     void startBattle();
 private:
-    int playerPlay(Rules*);
+    int playerPlay(Rules*, string);
 };
 
 Game::Game() {
@@ -201,7 +201,6 @@ Game::Game() {
 void Game::start() {
     Board* board = new Board();
     Rules* rules = new Rules();
-    string input = "";
     int mark;
     bool gameInPlay = true;
 
@@ -209,7 +208,7 @@ void Game::start() {
         board->printBoard();
 
         cout << "let's do this thing!\n";
-        mark = playerPlay(rules);
+        mark = playerPlay(rules, "X");
 
         board->markBoard(mark, "X");
         board->printBoard();
@@ -219,7 +218,7 @@ void Game::start() {
         }
 
         cout << "now it's player two\n";
-        mark = playerPlay(rules);
+        mark = playerPlay(rules, "O");
 
         board->markBoard(mark, "O");
         board->printBoard();
@@ -229,21 +228,32 @@ void Game::start() {
             continue;
         }
     }
+    string nothing;
+    getline(cin, nothing);
 }
 void Game::startBattle() {
     Board* board = new Board();
     Rules* rules = new Rules();
-    string input = "";
+    string p1Token, p2Token, input;
     int mark;
     bool gameInPlay = true;
+
+    cout << "(The vaild tokens are as follows: I'll write these later)\nPlayer One, please type what character yuo want to use:\n";
+    getline(cin, input);
+    //write the check to see if input is valid later; use this: "\nNot quite, Remember the valid ones are: (write these later), try again:\n"
+    p1Token = input;
+    cout << "\nAlright, now Player Two, type yours:\n";
+    getline(cin, input);
+    //write the check to see if input is valid later
+    p2Token = input;
 
     while (gameInPlay) {
         board->printBoard();
 
         cout << "let's do this thing!\n";
-        mark = playerPlay(rules);
+        mark = playerPlay(rules, p1Token);
 
-        board->markBoard(mark, "X");
+        board->markBoard(mark, p1Token);
         board->printBoard();
         if (rules->isDone()) {
             gameInPlay = false;
@@ -251,9 +261,9 @@ void Game::startBattle() {
         }
 
         cout << "now it's player two\n";
-        mark = playerPlay(rules);
+        mark = playerPlay(rules, p2Token);
 
-        board->markBoard(mark, "O");
+        board->markBoard(mark, p2Token);
         board->printBoard();
 
         if (rules->isDone()) {
@@ -262,7 +272,7 @@ void Game::startBattle() {
         }
     }
 }
-int Game::playerPlay(Rules* rules) {
+int Game::playerPlay(Rules* rules, string token) {
     string input = "";
     int mark = 0;
     bool canContinue = false;
@@ -271,7 +281,7 @@ int Game::playerPlay(Rules* rules) {
         cout << "make your move\n";
         getline(cin, input);
 
-        if (rules->verifyInput(input, "X")) {
+        if (rules->verifyInput(input, token)) {
             mark = stoi(input);
             cout << "\n";
             canContinue = true;
