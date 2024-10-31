@@ -13,8 +13,10 @@ public:
     Rules();
     bool verifyInput(string, string);
     bool isDone();
+    bool checkCorrectCharacterBattle(string);
 private:
     string mockBoard[9] = { "1","2","3","4","5","6","7","8","9" };
+    string allowedBattleTokens[59]{ "?","!","*","~","$","%","#","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z" };
     int mockTurnCounter = 0;
     int winningCombos[9][3];
     bool checkCorrectCharacter(string);
@@ -135,6 +137,16 @@ bool Rules::isDone() {
 bool Rules::threeInARow(int indexOne, int indexTwo, int indexThree) {
     return mockBoard[indexOne] == mockBoard[indexTwo] && mockBoard[indexTwo] == mockBoard[indexThree];
 }
+bool Rules::checkCorrectCharacterBattle(string token) {
+    bool isAllGood = false;
+
+    for (int i = 0; i < allowedBattleTokens->length()-1; i++) {
+        if (token == allowedBattleTokens[i])
+            isAllGood = true;
+    }
+
+    return isAllGood;
+}
 
 #pragma endregion
 
@@ -238,13 +250,19 @@ void Game::startBattle() {
     int mark;
     bool gameInPlay = true;
 
-    cout << "(The vaild tokens are as follows: I'll write these later)\nPlayer One, please type what character yuo want to use:\n";
+    cout << "(The vaild tokens are as follows: A – Z, a – z, ?, !, *, ~, $, %, and #)\nPlayer One, please type what character yuo want to use:\n";
     getline(cin, input);
-    //write the check to see if input is valid later; use this: "\nNot quite, Remember the valid ones are: (write these later), try again:\n"
+    while (!rules->checkCorrectCharacterBattle(input)) {
+        cout << "\nNot quite, Remember the valid ones are: A – Z, a – z, ?, !, *, ~, $, %, and #, try again:\n";
+        getline(cin, input);
+    }
     p1Token = input;
     cout << "\nAlright, now Player Two, type yours:\n";
     getline(cin, input);
-    //write the check to see if input is valid later
+    while (!rules->checkCorrectCharacterBattle(input)) {
+        cout << "\nNot quite, Remember the valid ones are: A – Z, a – z, ?, !, *, ~, $, %, and #, try again:\n";
+        getline(cin, input);
+    }
     p2Token = input;
 
     while (gameInPlay) {
@@ -271,6 +289,8 @@ void Game::startBattle() {
             continue;
         }
     }
+    string nothing;
+    getline(cin, nothing);
 }
 int Game::playerPlay(Rules* rules, string token) {
     string input = "";
