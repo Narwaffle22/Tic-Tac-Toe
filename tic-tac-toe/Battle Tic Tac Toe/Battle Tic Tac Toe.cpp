@@ -14,17 +14,20 @@ public:
     bool verifyInput(string, string);
     bool isDone();
     bool checkCorrectCharacterBattle(string);
+    void specialMovesRules(int);
+    void specialMovesRules(int, int);
 private:
     string mockBoard[9] = { "1","2","3","4","5","6","7","8","9" };
     string allowedBattleTokens[59]{ "?","!","*","~","$","%","#","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z" };
     int mockTurnCounter = 0;
     int winningCombos[9][3];
+    string XorO;
     bool checkCorrectCharacter(string);
     bool isInRange(int);
     bool isInteger(const string&);
     bool isAvailble(int);
     bool threeInARow(int, int, int);
-    string XorO;
+    void paladinRules(int, int);
 };
 
 Rules::Rules(){
@@ -139,13 +142,17 @@ bool Rules::threeInARow(int indexOne, int indexTwo, int indexThree) {
 }
 bool Rules::checkCorrectCharacterBattle(string token) {
     bool isAllGood = false;
+    int allowedTokensSize = sizeof(allowedBattleTokens) / sizeof(allowedBattleTokens[0]);
 
-    for (int i = 0; i < allowedBattleTokens->length()-1; i++) {
+    for (int i = 0; i < allowedTokensSize; i++) {
         if (token == allowedBattleTokens[i])
             isAllGood = true;
     }
 
     return isAllGood;
+}
+void Rules::paladinRules(int startingPos, int newPoint) {
+    
 }
 
 #pragma endregion
