@@ -11,23 +11,22 @@ class Rules
 {
 public:
     Rules();
-    bool verifyInput(string, string);
+    bool verifyInput(string);
     bool isDone();
     bool checkCorrectCharacterBattle(string);
-    void specialMovesRules(int);
-    void specialMovesRules(int, int);
+    bool paladinRules(string, string);
+    bool alchemistRules();
 private:
     string mockBoard[9] = { "1","2","3","4","5","6","7","8","9" };
     string allowedBattleTokens[59]{ "?","!","*","~","$","%","#","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z" };
     int mockTurnCounter = 0;
     int winningCombos[9][3];
     string XorO;
-    bool checkCorrectCharacter(string);
     bool isInRange(int);
     bool isInteger(const string&);
     bool isAvailble(int);
     bool threeInARow(int, int, int);
-    void paladinRules(int, int);
+    bool isAdjadcent(int, int);
 };
 
 Rules::Rules(){
@@ -63,12 +62,9 @@ Rules::Rules(){
     winningCombos[7][1] = 4;
     winningCombos[7][2] = 6;
 }
-bool Rules::verifyInput(string space, string token) {
-    bool correctToken = true;
+bool Rules::verifyInput(string space) {
     bool correctSpace = true;
     int mark;
-
-    //correctToken = checkCorrectCharacter(token);
 
     if (isInteger(space)) {
         mark = stoi(space);
@@ -79,15 +75,7 @@ bool Rules::verifyInput(string space, string token) {
         correctSpace = false;
     }
 
-    return correctToken && correctSpace;
-}
-bool Rules::checkCorrectCharacter(string token) {
-    if (token == "X" || token == "O") {
-        return true;
-    }
-    else {
-        return false;
-    }
+    return correctSpace;
 }
 bool Rules::isInRange(int space) {
     if (space > 0 && space < 10) {
@@ -151,9 +139,35 @@ bool Rules::checkCorrectCharacterBattle(string token) {
 
     return isAllGood;
 }
-void Rules::paladinRules(int startingPos, int newPoint) {
-    
+bool Rules::paladinRules(string firstPos, string secondPos) {
+    if (mockTurnCounter % 2 == 0)
+        XorO = "X";
+    else
+        XorO = "O";
+    if (!isInteger(firstPos))
+        return false;
+    if (!isInteger(secondPos))
+        return false;
+    if (!isAdjadcent(stoi(firstPos), stoi(secondPos)))
+        return false;
+    if (!(mockBoard[stoi(firstPos)-1] == XorO))
+        return false;
+    if (!isAvailble(stoi(secondPos)))
+        return false;
+    mockBoard[stoi(firstPos) - 1] = " ";
+    return true;
 }
+bool Rules::isAdjadcent(int firstPos, int secondPos) {
+    if ((firstPos == 6 && secondPos == 7) || (firstPos == 7 && secondPos == 6))
+        return false;
+    if ((firstPos == 3 && secondPos == 4) || (firstPos == 4 && secondPos == 3))
+        return false;
+    if ((firstPos + 3 == secondPos) || (firstPos + 1 == secondPos) || (firstPos - 1 == secondPos) || (firstPos - 3 == secondPos))
+        return true;
+    return false;
+}
+
+
 
 #pragma endregion
 
@@ -213,6 +227,7 @@ public:
     void startBattle();
 private:
     int playerPlay(Rules*, string);
+    void useSpecialMove(Rules*, Board*, string, string);
 };
 
 Game::Game() {
@@ -250,12 +265,33 @@ void Game::start() {
     string nothing;
     getline(cin, nothing);
 }
+int Game::playerPlay(Rules* rules, string token) {
+    string input = "";
+    int mark = 0;
+    bool canContinue = false;
+
+    while (!canContinue) {
+        cout << "make your move\n";
+        getline(cin, input);
+
+        if (rules->verifyInput(input)) {
+            mark = stoi(input);
+            cout << "\n";
+            canContinue = true;
+        }
+        else {
+            cout << "\nnot quite try again\n";
+        }
+    }
+    return mark;
+}
 void Game::startBattle() {
     Board* board = new Board();
     Rules* rules = new Rules();
-    string p1Token, p2Token, input;
+    string p1Token, p2Token, p1Class, p2Class, input;
     int mark;
     bool gameInPlay = true;
+    bool canContinue;
 
     cout << "(The vaild tokens are as follows: A – Z, a – z, ?, !, *, ~, $, %, and #)\nPlayer One, please type what character yuo want to use:\n";
     getline(cin, input);
@@ -272,23 +308,70 @@ void Game::startBattle() {
     }
     p2Token = input;
 
+    cout << "\nPlayer One, please type which class you will be (P for Paladin or A for Alchemist):\n";
+    getline(cin, input);
+    while (input == "p" || input == "a") {
+        cout << "\nNot quite, Remember it's P for Paladin or A for Alchemist, try again:\n";
+        getline(cin, input);
+    }
+    p1Class = input;
+    cout << "\nAlright, now Player Two, type yours:\n";
+    getline(cin, input);
+    while (input == "p" || input == "a") {
+        cout << "\nNot quite, Remember it's P for Paladin or A for Alchemist, try again:\n";
+        getline(cin, input);
+    }
+    p2Class = input;
+
     while (gameInPlay) {
         board->printBoard();
 
         cout << "let's do this thing!\n";
-        mark = playerPlay(rules, p1Token);
+        canContinue = false;
 
-        board->markBoard(mark, p1Token);
+        while (!canContinue) {
+            cout << "make your move or use your ability by pressing 'C'\n";
+            getline(cin, input);
+
+            if (input == "c" || input == "C") {
+                useSpecialMove(rules, board, p1Token ,p1Class);
+                canContinue = true;
+            } else if (rules->verifyInput(input)) {
+                mark = stoi(input);
+                cout << "\n";
+                board->markBoard(mark, p1Token);
+                canContinue = true;
+            } else {
+                cout << "\nnot quite try again\n";
+            }
+        }
+        
         board->printBoard();
         if (rules->isDone()) {
             gameInPlay = false;
             continue;
         }
 
+        canContinue = false;
         cout << "now it's player two\n";
-        mark = playerPlay(rules, p2Token);
+        while (!canContinue) {
+            cout << "make your move or use your ability by pressing 'C'\n";
+            getline(cin, input);
 
-        board->markBoard(mark, p2Token);
+            if (input == "c" || input == "C") {
+                useSpecialMove(rules, board, p2Token, p2Class);
+
+                canContinue = true;
+            } else if (rules->verifyInput(input)) {
+                mark = stoi(input);
+                cout << "\n";
+                board->markBoard(mark, p2Token);
+                canContinue = true;
+            } else {
+                cout << "\nnot quite try again\n";
+            }
+        }
+
         board->printBoard();
 
         if (rules->isDone()) {
@@ -299,26 +382,28 @@ void Game::startBattle() {
     string nothing;
     getline(cin, nothing);
 }
-int Game::playerPlay(Rules* rules, string token) {
-    string input = "";
-    int mark = 0;
+void Game::useSpecialMove(Rules* rules, Board* board, string playerToken, string playerClass) {
     bool canContinue = false;
-
-    while (!canContinue) {
-        cout << "make your move\n";
-        getline(cin, input);
-
-        if (rules->verifyInput(input, token)) {
-            mark = stoi(input);
-            cout << "\n";
-            canContinue = true;
+    string firstPos, secondPos;
+    if (playerClass == "P") {
+        while (!canContinue) {
+            cout << "Which do you want to move?\n";
+            getline(cin, firstPos);
+            cout << "\nAnd where do you want to move it?\n";
+            getline(cin, secondPos);
+            if (rules->paladinRules(firstPos, secondPos)) {
+                board->markBoard(stoi(secondPos), playerToken);
+                board->markBoard(stoi(firstPos), firstPos);
+                canContinue = true;
+            } else {
+                cout << "\none or more of your responses were incorrect, please try again\n";
+            }
         }
-        else {
-            cout << "\nnot quite try again\n";
-        }
+    } else if (playerClass == "A"){
+
     }
-    return mark;
 }
+
 #pragma endregion
 
 #pragma region Menu Class
