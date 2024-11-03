@@ -15,7 +15,7 @@ public:
     bool isDone();
     bool checkCorrectCharacterBattle(string);
     bool paladinRules(string, string);
-    bool alchemistRules();
+    bool alchemistRules(string);
 private:
     string mockBoard[9] = { "1","2","3","4","5","6","7","8","9" };
     string allowedBattleTokens[59]{ "?","!","*","~","$","%","#","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z" };
@@ -27,6 +27,7 @@ private:
     bool isAvailble(int);
     bool threeInARow(int, int, int);
     bool isAdjadcent(int, int);
+    bool isTaken(int);
 };
 
 Rules::Rules(){
@@ -166,7 +167,16 @@ bool Rules::isAdjadcent(int firstPos, int secondPos) {
         return true;
     return false;
 }
-
+bool Rules::alchemistRules(string tile) {
+    if (!isInteger(tile))
+        return false;
+    int intTile = stoi(tile) - 1;
+    if (!isInRange(intTile))
+        return false;
+    if (!(mockBoard[intTile] == "O" || mockBoard[intTile] == "X"))
+        return false;
+    return true;
+}
 
 
 #pragma endregion
@@ -293,6 +303,7 @@ void Game::startBattle() {
     bool gameInPlay = true;
     bool canContinue;
 
+#pragma region starting stuff
     cout << "(The vaild tokens are as follows: A – Z, a – z, ?, !, *, ~, $, %, and #)\nPlayer One, please type what character yuo want to use:\n";
     getline(cin, input);
     while (!rules->checkCorrectCharacterBattle(input)) {
@@ -322,6 +333,7 @@ void Game::startBattle() {
         getline(cin, input);
     }
     p2Class = input;
+#pragma endregion starting stuff
 
     while (gameInPlay) {
         board->printBoard();
@@ -360,7 +372,6 @@ void Game::startBattle() {
 
             if (input == "c" || input == "C") {
                 useSpecialMove(rules, board, p2Token, p2Class);
-
                 canContinue = true;
             } else if (rules->verifyInput(input)) {
                 mark = stoi(input);
@@ -384,11 +395,15 @@ void Game::startBattle() {
 }
 void Game::useSpecialMove(Rules* rules, Board* board, string playerToken, string playerClass) {
     bool canContinue = false;
-    string firstPos, secondPos;
+    string firstPos, secondPos, transTile;
     if (playerClass == "P") {
         while (!canContinue) {
-            cout << "Which do you want to move?\n";
+            cout << "\nWhich do you want to move? or press 'b' to go back (warning it will skip your turn)\n";
             getline(cin, firstPos);
+            if (firstPos == "B" || firstPos == "b"){
+                canContinue = true;
+                break;
+            }
             cout << "\nAnd where do you want to move it?\n";
             getline(cin, secondPos);
             if (rules->paladinRules(firstPos, secondPos)) {
@@ -400,7 +415,20 @@ void Game::useSpecialMove(Rules* rules, Board* board, string playerToken, string
             }
         }
     } else if (playerClass == "A"){
-
+        while (!canContinue) {
+            cout << "\nWhich tile do you want to transmute? or press 'b' to go back (warning it will skip your turn)\n";
+            getline(cin, transTile);
+            if (transTile == "B" || transTile == "b") {
+                canContinue = true;
+                break;
+            }
+            if (rules->alchemistRules(transTile)) {
+                board->markBoard(stoi(transTile), playerToken);
+                canContinue = true;
+            } else {
+                cout << "\nThat is an invalid tile\n";
+            }
+        }
     }
 }
 
