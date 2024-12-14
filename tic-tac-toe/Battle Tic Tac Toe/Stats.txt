@@ -1,0 +1,11 @@
++--------------------------------------+
++             Stats Screen             +
++--------------------------------------+
+
+Here are your awesome statistics for this session!
+
+Games played: 1
+Times player 1 won: 1
+Times player 2 won: 0
+Times drew: 0
+

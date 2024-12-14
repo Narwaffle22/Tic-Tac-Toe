@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <windows.h>
+#include <fstream>
 
 using namespace std;
 
@@ -16,12 +17,20 @@ public:
     bool checkCorrectCharacterBattle(string);
     bool paladinRules(string, string);
     bool alchemistRules(string);
+    int getGamesPlayed();
+    int getP1Wins();
+    int getP2Wins();
+    int getTies();
 private:
     string mockBoard[9] = { "1","2","3","4","5","6","7","8","9" };
     string allowedBattleTokens[59]{ "?","!","*","~","$","%","#","A","B","C","D","E","F","G","H","I","J","K","L","M","N","O","P","Q","R","S","T","U","V","W","X","Y","Z","a","b","c","d","e","f","g","h","i","j","k","l","m","n","o","p","q","r","s","t","u","v","w","x","y","z" };
     int mockTurnCounter = 0;
     int winningCombos[9][3];
     string XorO;
+    int gamesPlayed = 0;
+    int p1Wins = 0;
+    int p2Wins = 0;
+    int ties = 0;
     bool isInRange(int);
     bool isInteger(const string&);
     bool isAvailble(int);
@@ -114,6 +123,12 @@ bool Rules::isDone() {
     for (int i = 0; i < 8; i++) {
         if (this->threeInARow(winningCombos[i][0], winningCombos[i][1], winningCombos[i][2])) {
             cout << "Game is over, " << XorO << " wins\nPress [Enter] to continue";
+            gamesPlayed++;
+            if (XorO == "X") {
+                p1Wins++;
+            } else {
+                p2Wins++;
+            }
             return true;
         }
     }
@@ -124,6 +139,8 @@ bool Rules::isDone() {
     }
 
     cout << "Game is over, it's a tie, womp womp\nPress [Enter] to continue";
+    gamesPlayed++;
+    ties++;
     return true;
 }
 bool Rules::threeInARow(int indexOne, int indexTwo, int indexThree) {
@@ -177,7 +194,10 @@ bool Rules::alchemistRules(string tile) {
         return false;
     return true;
 }
-
+int Rules::getGamesPlayed() { return gamesPlayed; }
+int Rules::getP1Wins() { return p1Wins; }
+int Rules::getP2Wins() { return p2Wins; }
+int Rules::getTies() { return ties; }
 
 #pragma endregion
 
@@ -235,13 +255,21 @@ public:
     Game();
     void start();
     void startBattle();
+    int getGamesPlayed();
+    int getP1Wins();
+    int getP2Wins();
+    int getTies();
 private:
+    int gamesPlayed = 0;
+    int p1Wins = 0;
+    int p2Wins = 0;
+    int ties = 0;
     int playerPlay(Rules*, string);
     void useSpecialMove(Rules*, Board*, string, string);
+    void transferStats(int, int, int, int);
 };
 
-Game::Game() {
-}
+Game::Game() {}
 void Game::start() {
     Board* board = new Board();
     Rules* rules = new Rules();
@@ -258,6 +286,8 @@ void Game::start() {
         board->printBoard();
         if (rules->isDone()) {
             gameInPlay = false;
+            transferStats(rules->getGamesPlayed(), rules->getP1Wins(), rules->getP2Wins(), rules->getTies());
+            delete rules;
             continue;
         }
 
@@ -269,6 +299,8 @@ void Game::start() {
 
         if (rules->isDone()) {
             gameInPlay = false;
+            transferStats(rules->getGamesPlayed(), rules->getP1Wins(), rules->getP2Wins(), rules->getTies());
+            delete rules;
             continue;
         }
     }
@@ -361,6 +393,8 @@ void Game::startBattle() {
         board->printBoard();
         if (rules->isDone()) {
             gameInPlay = false;
+            transferStats(rules->getGamesPlayed(), rules->getP1Wins(), rules->getP2Wins(), rules->getTies());
+            delete rules;
             continue;
         }
 
@@ -387,6 +421,8 @@ void Game::startBattle() {
 
         if (rules->isDone()) {
             gameInPlay = false;
+            transferStats(rules->getGamesPlayed(), rules->getP1Wins(), rules->getP2Wins(), rules->getTies());
+            delete rules;
             continue;
         }
     }
@@ -431,8 +467,104 @@ void Game::useSpecialMove(Rules* rules, Board* board, string playerToken, string
         }
     }
 }
+void Game::transferStats(int Games, int p1, int p2, int ties) {
+    gamesPlayed += Games;
+    p1Wins += p1;
+    p2Wins += p2;
+    this->ties += ties;
+}
+int Game::getGamesPlayed() { return gamesPlayed; }
+int Game::getP1Wins() { return p1Wins; }
+int Game::getP2Wins() { return p2Wins; }
+int Game::getTies() { return ties; }
 
 #pragma endregion
+
+class StatsTracker {
+public:
+    StatsTracker();
+    StatsTracker(int, int, int, int);
+    void dispInfo();
+private:
+    void printToFile();
+    int gamesPlayed = 0;
+    int p1Wins = 0;
+    int p2Wins = 0;
+    int ties = 0;
+};
+
+StatsTracker::StatsTracker() {}
+StatsTracker::StatsTracker(int games, int p1Win, int p2Win, int ties) {
+    gamesPlayed = games;
+    p1Wins = p1Win;
+    p2Wins = p2Win;
+    this->ties = ties;
+}
+void StatsTracker::dispInfo() {
+    int command;
+    bool inProgress = true;
+
+    cout << "+--------------------------------------+" << "\n";
+    cout << "+             Stats Screen             +" << "\n";
+    cout << "+--------------------------------------+" << "\n\n";
+
+    cout << "Here are your awesome statistics for this session!\n" << endl;
+
+    cout << "Games played: " << gamesPlayed << endl;
+    cout << "Times player 1 won: " << p1Wins << endl;
+    cout << "Times player 2 won: " << p2Wins << endl;
+    cout << "Times drew: " << ties << endl << endl;
+
+    while (inProgress) {
+        cout << "[1] Print to file" << endl;
+        cout << "[0] Exit" << endl;
+        cout << "SELECT Command: ";
+        cin >> command;
+
+        switch (command) {
+        case 0: {
+            inProgress = false;
+            cout << "And back to the menu you go!" << endl;
+            break;
+        }
+        case 1: {
+            printToFile();
+            break;
+        }
+        default: {
+            cout << "Invalid input! Please enter 0 or 1." << endl;
+            break;
+        }
+        }
+    }
+}
+
+void StatsTracker::printToFile() {
+    string fileName = "Stats.txt";
+    ofstream outFile;
+
+    outFile.open(fileName);
+
+    if (outFile.is_open()) {
+        outFile << "+--------------------------------------+" << "\n";
+        outFile << "+             Stats Screen             +" << "\n";
+        outFile << "+--------------------------------------+" << "\n\n";
+
+        outFile << "Here are your awesome statistics for this session!\n" << endl;
+
+        outFile << "Games played: " << gamesPlayed << endl;
+        outFile << "Times player 1 won: " << p1Wins << endl;
+        outFile << "Times player 2 won: " << p2Wins << endl;
+        outFile << "Times drew: " << ties << endl << endl;
+
+        outFile.close();
+
+        cout << "File \"" << fileName << "\" has been created and written successfully!" << endl;
+    }
+    else {
+        cerr << "Error: Could not open the file for writing!" << endl;
+    }
+}
 
 #pragma region Menu Class
 
@@ -443,6 +575,10 @@ public:
 private:
     string welcomeMessages[3] = { "welcome back to the menu", "aaand we're back", "here we are again" };
     int randWelcome;
+    int gamesPlayed = 0;
+    int p1Wins = 0;
+    int p2Wins = 0;
+    int ties = 0;
     void playTicTacToe();
     void playBatTicTacToe();
     void compendium();
@@ -544,6 +680,10 @@ void MainMenu::playTicTacToe() {
     cin.ignore();
     Game* tictactoe = new Game();
     tictactoe->start();
+    gamesPlayed += tictactoe->getGamesPlayed();
+    p1Wins += tictactoe->getP1Wins();
+    p2Wins += tictactoe->getP2Wins();
+    ties += tictactoe->getTies();
     delete tictactoe;
     clearConsole();
 }
@@ -552,15 +692,24 @@ void MainMenu::playBatTicTacToe() {
     cin.ignore();
     Game* batTicTacToe = new Game();
     batTicTacToe->startBattle();
+    gamesPlayed += batTicTacToe->getGamesPlayed();
+    p1Wins += batTicTacToe->getP1Wins();
+    p2Wins += batTicTacToe->getP2Wins();
+    ties += batTicTacToe->getTies();
     delete batTicTacToe;
     clearConsole();
 }
 void MainMenu::compendium() {
-    cout << "\n\n\nOh, I have so many ideas for this one, just you wait\n\n\n";
+    cout << "Oh I have so many Ideas for this one\n";
     clearConsole();
 }
 void MainMenu::statsScreen() {
-    cout << "\n\n\nOh, I have so many ideas for this one, just you wait\n\n\n";
+    clearConsole();
+    cin.ignore();
+    StatsTracker* stats = new StatsTracker(gamesPlayed, p1Wins, p2Wins, ties);
+    stats->dispInfo();
+    delete stats;
+    clearConsole();
     clearConsole();
 }
 void MainMenu::clearConsole() {
